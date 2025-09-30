@@ -1,0 +1,182 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+.padding-element {
+    height: 20vh;
+    flex: 1;
+}
+
+.container-center {
+    min-height: 60vh;
+}
+
+#search_bar_container {
+    margin-left: auto;
+    margin-right: auto;
+    width: 70%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.search-bar-container {
+    width: 100%;
+    text-align: center;
+    margin: 12px;
+    display: flex;
+}
+
+.search-input {
+    padding: 10px;
+    width: 100%;
+    font-size: 18px;
+}
+
+.search-button {
+    width: 166px;
+    margin-left: 20px;
+    padding: 10px 20px;
+    background-color: #4285F4;
+    color: white;
+    font-size: 18px;
+    border: none;
+    cursor: pointer;
+}
+
+#split-line {
+    width: 80%;
+    max-width: 1000px;
+    height: 1px;
+    background-color: #ccc;
+    margin: 20px auto;
+}
+
+#bottom-panel {
+    width: 70%;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    justify-content: start;
+}
+
+.clickable-button {
+    margin-right: 20px;
+    color: #0000ee;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.clickable-button:hover {
+    text-decoration: underline;
+}
+
+.author-link {
+    float: right;
+    text-decoration: none;
+    color: #0000ee;
+    font-size: 16px;
+}
+
+.author-link:visited {
+    color: #0000ee;
+}
+
+.settings-title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 20px;
+    margin-bottom: 10px;
+}
+
+.locale-container {
+    margin-left: auto;
+}
+
+#setting-panel {
+    display: none;
+}
+
+#setting-panel.active {
+    display: block;
+}
+
+.search-config-item {
+    height: 32px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.search-config-item > * {
+    margin: 0 5px;
+}
+
+.search-config-item input[type="text"] {
+    padding: 5px;
+}
+
+.search-config-item-button-text {
+    width: 75px;
+}
+
+.search-config-item-query {
+    flex: 1;
+}
+
+.config-item-button {
+    width: 20px;
+    height: 20px;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    padding: 0;
+}
+
+.config-item-button:hover {
+    background-color: #ccc;
+}
+
+.config-item-button svg {
+    width: 20px;
+    height: 20px;
+}
+
+.other-settings-panel {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.other-settings-panel > div {
+    flex: 0 0 33%;
+    display: flex;
+    align-items: center;
+}
+
+.other-settings-panel input[type="checkbox"] {
+    margin: 0 5px;
+}
+
+.other-settings-panel label {
+    font-size: 16px;
+}

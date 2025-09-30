@@ -8,15 +8,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@intlify/unplugin-vue-i18n": "^1.6.0",
-    "chalk": "^5.2.0",
-    "vue": "^3.2.47",
-    "vue-i18n": "^9.2.2"
+    "chalk": "^5.2.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^4.0.0",
     "archiver": "^5.3.1",
-    "vite": "^4.1.4",
-    "vue-cli-plugin-i18n": "~2.3.2"
+    "vite": "^4.1.4"
   }
 }
