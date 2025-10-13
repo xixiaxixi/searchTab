@@ -56,66 +56,80 @@ body {
     width: 80%;
     max-width: 1000px;
     height: 1px;
-    background-color: #ccc;
-    margin: 20px auto;
+    background-color: #e0e0e0;
+    margin: 15px auto;
 }
 
-#bottom-panel {
-    width: 70%;
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
-    justify-content: start;
-}
-
-.clickable-button {
-    margin-right: 20px;
-    color: #0000ee;
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    outline: none;
-    font-size: 16px;
-    font-weight: 500;
-    padding: 0;
-    display: inline-flex;
+/* ====== 底部固定工具栏 ====== */
+#bottom-toolbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    padding: 10px 20px;
+    display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 100;
 }
 
-.clickable-button:hover {
-    text-decoration: underline;
-}
-
-.author-link {
-    float: right;
+.toolbar-link {
     text-decoration: none;
-    color: #0000ee;
-    font-size: 16px;
+    color: #666;
+    font-size: 13px;
+    transition: color 0.2s ease;
 }
 
-.author-link:visited {
-    color: #0000ee;
+.toolbar-link:hover {
+    color: #333;
+}
+
+.toolbar-button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #333;
+    transition: all 0.2s ease;
+}
+
+.toolbar-button:hover {
+    background: #f5f5f5;
+    border-color: #999;
+}
+
+.toolbar-button svg {
+    flex-shrink: 0;
+}
+
+/* 移除旧的底部面板样式 */
+#bottom-panel,
+#normal-view,
+#setting-panel {
+    display: none;
 }
 
 .settings-title {
     display: flex;
     flex-direction: row;
     align-items: center;
-    height: 20px;
-    margin-bottom: 10px;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.edit-buttons {
+    display: flex;
+    gap: 8px;
 }
 
 .locale-container {
     margin-left: auto;
-}
-
-#setting-panel {
-    display: none;
-}
-
-#setting-panel.active {
-    display: block;
 }
 
 .search-config-item {
@@ -179,4 +193,357 @@ body {
 
 .other-settings-panel label {
     font-size: 16px;
+}
+
+/* ====== 卡片式内容区域样式 ====== */
+#cards-section {
+    width: 85%;
+    max-width: 1200px;
+    margin: 27px auto 20px;
+    padding-bottom: 60px; /* 为底部工具栏留出空间 */
+}
+
+/* 移除卡片头部的多余样式 */
+.cards-header {
+    display: none;
+}
+
+.cards-controls {
+    display: none;
+}
+
+.control-button {
+    display: none;
+}
+
+/* 卡片网格 */
+.cards-grid {
+    display: grid;
+    gap: 15px;
+    grid-template-columns: repeat(2, 1fr);
+}
+
+/* 卡片样式 - 紧凑版 */
+.content-card {
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.content-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    transform: translateY(-1px);
+}
+
+.card-header {
+    padding: 10px 14px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-title {
+    margin: 0;
+    color: #333;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.card-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.card-action-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.card-action-button:hover {
+    background-color: #e9ecef;
+}
+
+.card-content {
+    padding: 10px;
+    height: calc(100% - 48px);
+    overflow-y: auto;
+}
+
+.card-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.card-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.card-item:hover {
+    background-color: #f8f9fa;
+}
+
+.card-item-favicon {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.card-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.card-item-title {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 12px;
+}
+
+.card-item-meta {
+    font-size: 10px;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-empty {
+    text-align: center;
+    color: #999;
+    font-style: italic;
+    padding: 30px 15px;
+    font-size: 13px;
+}
+
+/* 状态消息 */
+.loading-message,
+.empty-message,
+.error-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+    font-size: 14px;
+}
+
+.error-message {
+    color: #d93025;
+}
+
+/* 模态框样式 */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal-content.large-modal {
+    max-width: 800px;
+    max-height: 85vh;
+}
+
+.modal-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 18px;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    color: #333;
+}
+
+.modal-body {
+    padding: 20px 24px;
+}
+
+.config-field {
+    margin-bottom: 16px;
+}
+
+.config-field label {
+    display: block;
+    margin-bottom: 6px;
+    color: #333;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.config-field input,
+.config-field select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.config-field input:focus,
+.config-field select:focus {
+    border-color: #4285F4;
+    box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+}
+
+.filter-hint {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: #666;
+    line-height: 1.4;
+}
+
+.checkbox-group {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-weight: normal;
+    font-size: 14px;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: auto;
+    cursor: pointer;
+}
+
+.modal-footer {
+    padding: 16px 24px 20px;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.modal-button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.modal-button.primary {
+    background-color: #4285F4;
+    color: white;
+}
+
+.modal-button.primary:hover {
+    background-color: #3367d6;
+}
+
+.modal-button.secondary {
+    background-color: #f8f9fa;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.modal-button.secondary:hover {
+    background-color: #e9ecef;
+}
+
+/* 滚动条样式 */
+.card-content::-webkit-scrollbar,
+.modal-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.card-content::-webkit-scrollbar-track,
+.modal-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.card-content::-webkit-scrollbar-thumb,
+.modal-content::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.card-content::-webkit-scrollbar-thumb:hover,
+.modal-content::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .cards-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    #cards-section {
+        width: 95%;
+    }
+    
+    .cards-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
+    }
 }

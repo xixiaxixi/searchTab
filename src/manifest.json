@@ -5,7 +5,9 @@
   "description": "Replaces the default new tab page with a custom one",
   "permissions": [
     "tabs",
-    "storage"
+    "storage",
+    "bookmarks",
+    "history"
   ],
   "chrome_url_overrides": {
     "newtab": "index.html"
