@@ -71,11 +71,11 @@
                 <div class="other-settings-panel">
                     <div>
                         <input type="checkbox" id="openInNewTabCheckbox">
-                        <label for="openInNewTabCheckbox" id="openInNewTabLabel"></label>
+                        <label for="openInNewTabCheckbox" id="openInNewTabLabel">在新标签页中打开</label>
                     </div>
                     <div>
                         <input type="checkbox" id="syncSearchBarCheckbox">
-                        <label for="syncSearchBarCheckbox" id="syncSearchBarLabel"></label>
+                        <label for="syncSearchBarCheckbox" id="syncSearchBarLabel">同步搜索栏输入</label>
                     </div>
                 </div>
             </div>
@@ -109,8 +109,8 @@
                 </div>
                 <div class="config-field">
                     <label for="card-filter" id="card-filter-label">筛选关键词:</label>
-                    <input type="text" id="card-filter" placeholder="例: github 或 title:新闻 或 /^https/" title="支持: 关键词 | title:文本 | url:文本 | /正则/ | title:/正则/ | url:/正则/">
-                    <small class="filter-hint" id="card-filter-hint">支持语法: 关键词 | title:文本 | url:文本 | /正则/ | title:/正则/ | url:/正则/</small>
+                    <input type="text" id="card-filter" placeholder="直接输入匹配词 或 使用筛选语法" title="支持多tag、或/且关系、负向筛选、dir通配符">
+                    <small class="filter-hint" id="card-filter-hint">支持语法: title:文本 url:文本 domain:域名 dir:路径 -tag:排除 支持多tag及正则 /regex/</small>
                 </div>
                 <div class="config-field" id="history-time-field" style="display: none;">
                     <label for="card-history-days" id="history-time-label">历史记录时间范围:</label>
@@ -121,13 +121,9 @@
                         <option value="0" id="history-option-all">全部</option>
                     </select>
                 </div>
-                <div class="config-field" id="bookmarks-folder-field" style="display: none;">
-                    <label for="card-folder-filter" id="bookmarks-folder-label">收藏夹文件夹:</label>
-                    <input type="text" id="card-folder-filter" placeholder="输入文件夹名称（可选）">
-                </div>
                 <div class="config-field">
                     <label for="card-max-items" id="card-max-items-label">最大显示数量:</label>
-                    <input type="number" id="card-max-items" value="10" min="1" max="50">
+                    <input type="number" id="card-max-items" value="100" min="1" max="500">
                 </div>
             </div>
             <div class="modal-footer">

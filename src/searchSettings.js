@@ -394,11 +394,12 @@ export function initSearchSettings() {
     
     // 绑定搜索设置模态框事件
     document.getElementById('close-search-settings').addEventListener('click', hideSearchSettingsModal);
-    document.getElementById('search-settings-modal').addEventListener('click', (e) => {
-        if (e.target.id === 'search-settings-modal') {
-            hideSearchSettingsModal();
-        }
-    });
+    // 移除点击外部关闭功能
+    // document.getElementById('search-settings-modal').addEventListener('click', (e) => {
+    //     if (e.target.id === 'search-settings-modal') {
+    //         hideSearchSettingsModal();
+    //     }
+    // });
 
     // 绑定设置面板按钮
     document.getElementById('save-button').addEventListener('click', saveConfig);
@@ -420,6 +421,16 @@ export function initSearchSettings() {
         saveSyncSearchBar(syncSearchBar);
         // 重新渲染搜索栏以应用同步设置
         renderSearchBars();
+    });
+    
+    // 绑定ESC键关闭搜索设置模态框
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const searchSettingsModal = document.getElementById('search-settings-modal');
+            if (searchSettingsModal && searchSettingsModal.style.display === 'block') {
+                hideSearchSettingsModal();
+            }
+        }
     });
 }
 

@@ -273,15 +273,6 @@ function getFilteredItems(cardConfig) {
     // 从选中的数据源收集数据
     if (types.includes('bookmarks')) {
         let bookmarkItems = [...allBookmarks];
-        
-        // 文件夹筛选
-        if (cardConfig.folderFilter) {
-            const folderFilter = cardConfig.folderFilter.toLowerCase();
-            bookmarkItems = bookmarkItems.filter(item => 
-                item.folder && item.folder.toLowerCase().includes(folderFilter)
-            );
-        }
-        
         items = items.concat(bookmarkItems);
     }
     
@@ -387,10 +378,10 @@ function clearCardConfigForm() {
     document.getElementById('card-type-bookmarks').checked = false;
     document.getElementById('card-type-history').checked = false;
     document.getElementById('card-filter').value = '';
-    document.getElementById('card-folder-filter').value = '';
     document.getElementById('card-history-days').value = '7';
-    document.getElementById('card-max-items').value = '10';
+    document.getElementById('card-max-items').value = '100';
     toggleCardTypeFields();
+    updateFilterValidation(); // 清空验证提示
 }
 
 function fillCardConfigForm(cardConfig) {
@@ -402,21 +393,19 @@ function fillCardConfigForm(cardConfig) {
     document.getElementById('card-type-history').checked = types.includes('history');
     
     document.getElementById('card-filter').value = cardConfig.filter || '';
-    document.getElementById('card-folder-filter').value = cardConfig.folderFilter || '';
     document.getElementById('card-history-days').value = cardConfig.historyDays || '7';
-    document.getElementById('card-max-items').value = cardConfig.maxItems || '10';
+    document.getElementById('card-max-items').value = cardConfig.maxItems || '100';
     toggleCardTypeFields();
+    updateFilterValidation(); // 验证已有的filter
 }
 
 function toggleCardTypeFields() {
     const bookmarksChecked = document.getElementById('card-type-bookmarks').checked;
     const historyChecked = document.getElementById('card-type-history').checked;
     const historyField = document.getElementById('history-time-field');
-    const bookmarksField = document.getElementById('bookmarks-folder-field');
     
     // 显示/隐藏相关字段
     historyField.style.display = historyChecked ? 'block' : 'none';
-    bookmarksField.style.display = bookmarksChecked ? 'block' : 'none';
 }
 
 function saveCardConfig() {
@@ -432,7 +421,6 @@ function saveCardConfig() {
     }
     
     const filter = document.getElementById('card-filter').value.trim();
-    const folderFilter = document.getElementById('card-folder-filter').value.trim();
     const historyDays = parseInt(document.getElementById('card-history-days').value);
     const maxItems = parseInt(document.getElementById('card-max-items').value);
     
@@ -460,7 +448,6 @@ function saveCardConfig() {
         title,
         types,
         filter,
-        folderFilter,
         historyDays,
         maxItems
     };
@@ -507,6 +494,47 @@ export function setOpenInNewTab(value) {
     openInNewTab = value;
 }
 
+// ====== 筛选器实时验证 ======
+function updateFilterValidation() {
+    const filterInput = document.getElementById('card-filter');
+    const filterHint = document.getElementById('card-filter-hint');
+    
+    if (!filterInput || !filterHint) return;
+    
+    const filterValue = filterInput.value.trim();
+    
+    if (!filterValue) {
+        // 清空时移除所有状态
+        filterInput.classList.remove('filter-valid', 'filter-invalid');
+        filterHint.textContent = '支持语法: title:文本 url:文本 domain:域名 dir:路径 -tag:排除 支持多tag及正则 /regex/';
+        filterHint.className = 'filter-hint';
+        return;
+    }
+    
+    const validation = FilterParser.validate(filterValue);
+    
+    if (validation.valid) {
+        filterInput.classList.remove('filter-invalid');
+        filterInput.classList.add('filter-valid');
+        
+        // 显示筛选器描述
+        try {
+            const parser = new FilterParser(filterValue);
+            const desc = parser.getDescription();
+            filterHint.textContent = `✓ ${desc}`;
+            filterHint.className = 'filter-hint filter-hint-valid';
+        } catch (e) {
+            filterHint.textContent = '✓ 语法正确';
+            filterHint.className = 'filter-hint filter-hint-valid';
+        }
+    } else {
+        filterInput.classList.remove('filter-valid');
+        filterInput.classList.add('filter-invalid');
+        filterHint.textContent = `✗ ${validation.error}`;
+        filterHint.className = 'filter-hint filter-hint-error';
+    }
+}
+
 // ====== 初始化 ======
 export function initCardManager() {
     // 加载配置
@@ -527,20 +555,30 @@ export function initCardManager() {
     document.getElementById('card-type-bookmarks').addEventListener('change', toggleCardTypeFields);
     document.getElementById('card-type-history').addEventListener('change', toggleCardTypeFields);
     
+    // 绑定筛选器输入的实时验证
+    const filterInput = document.getElementById('card-filter');
+    if (filterInput) {
+        filterInput.addEventListener('input', updateFilterValidation);
+        filterInput.addEventListener('blur', updateFilterValidation);
+    }
+    
     // 绑定布局配置模态框事件
     document.getElementById('close-layout-config').addEventListener('click', hideLayoutConfigModal);
     document.getElementById('cancel-layout-config').addEventListener('click', hideLayoutConfigModal);
     document.getElementById('save-layout-config').addEventListener('click', saveLayoutConfigFromModal);
     
-    // 绑定模态框点击外部关闭
-    document.getElementById('card-config-modal').addEventListener('click', (e) => {
-        if (e.target.id === 'card-config-modal') {
-            hideCardConfigModal();
-        }
-    });
-    document.getElementById('layout-config-modal').addEventListener('click', (e) => {
-        if (e.target.id === 'layout-config-modal') {
-            hideLayoutConfigModal();
+    // 绑定ESC键关闭所有模态框
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            // 检查哪个模态框是打开的并关闭它
+            const cardConfigModal = document.getElementById('card-config-modal');
+            const layoutConfigModal = document.getElementById('layout-config-modal');
+            
+            if (cardConfigModal && cardConfigModal.style.display === 'block') {
+                hideCardConfigModal();
+            } else if (layoutConfigModal && layoutConfigModal.style.display === 'block') {
+                hideLayoutConfigModal();
+            }
         }
     });
 }
