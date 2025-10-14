@@ -7,7 +7,7 @@ fs.copyFileSync("src/manifest.json", "dist/manifest.json");
 
 console.log("2. zip dist folder...");
 const archiver = require("archiver");
-const targetPath = "output/dist.zip";
+const targetPath = "output/search_new_tab.zip";
 // make sure output folder exists
 if (!fs.existsSync("output")) {
     fs.mkdirSync("output");
