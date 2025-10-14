@@ -5,6 +5,7 @@ import {resolve} from 'path'
 export default defineConfig({
     plugins: [],
     root: 'src',
+    publicDir: '../public',
     build: {
         outDir: '../dist',
         emptyOutDir: true,

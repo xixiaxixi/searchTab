@@ -248,9 +248,12 @@ title:python title:javascript title:rust
 ## 注意事项
 
 1. **dir标签仅对收藏夹有效**：历史记录没有文件夹概念，会自动忽略 `dir:` 标签
-2. **正则表达式需要转义特殊字符**：如 `.` 需要写成 `\.`
-3. **通配符仅支持在dir标签中**：`*` 和 `**` 只能在 `dir:` 中使用
-4. **默认不区分大小写**：除非在正则表达式中显式指定标志
+2. **domain提取域名**：`domain:` 标签会自动从URL中提取域名进行匹配
+3. **正则表达式需要转义特殊字符**：如 `.` 需要写成 `\.`
+4. **通配符支持**：
+   - `domain:` 支持域名通配符 `*` 和 `**`
+   - `dir:` 支持路径通配符 `*` 和 `**`
+5. **默认不区分大小写**：除非在正则表达式中显式指定标志
 
 ---
 
@@ -260,24 +263,33 @@ title:python title:javascript title:rust
 |------|------|------|
 | `title:keyword` | 标题文本搜索 | `title:教程` |
 | `url:keyword` | URL文本搜索 | `url:.com` |
+| `domain:pattern` | 域名匹配（支持通配符） | `domain:*.github.io` |
 | `dir:path` | 文件夹路径（仅收藏夹） | `dir:工作/*` |
 | `-tag:value` | 负向筛选（排除） | `-title:广告` |
 | `tag:/regex/` | 正则表达式 | `url:/\.com$/` |
-| `tag:A tag:B` | 同字段OR关系 | `url:github.io url:gitlab.io` |
-| `tagA:X tagB:Y` | 不同字段AND关系 | `url:github.com title:vue` |
+| `tag:A tag:B` | 同字段OR关系 | `domain:github.com domain:gitlab.com` |
+| `tagA:X tagB:Y` | 不同字段AND关系 | `domain:github.com title:vue` |
 
 ---
 
 ## 常见问题
 
+**Q: domain 和 url 有什么区别？**  
+A: `domain:` 只匹配域名部分，支持通配符；`url:` 匹配完整URL，支持正则和文本包含
+
 **Q: 如何匹配根文件夹下的书签？**  
 A: 使用 `dir:` 无值，或者不使用dir标签
 
-**Q: 通配符 * 和 ** 有什么区别？**  
-A: `*` 匹配单级路径（如 `工作/*` 匹配 `工作/项目` 但不匹配 `工作/项目/前端`），`**` 匹配多级（`工作/**` 匹配所有子路径）
+**Q: domain 的通配符 * 和 ** 有什么区别？**  
+A: 
+- `*` 匹配单个部分，如 `*.example.com` 匹配 `www.example.com` 但不匹配 `a.b.example.com`
+- `**` 匹配多个部分，如 `**.example.com` 匹配 `a.b.example.com`
 
 **Q: 为什么我的正则表达式不起作用？**  
 A: 确保正则表达式用 `/` 包裹，如 `/pattern/`，并且特殊字符需要转义
 
 **Q: 可以同时筛选收藏夹和历史记录吗？**  
 A: 可以！在卡片配置中选择两个数据源。`dir:` 标签只会应用于收藏夹，不影响历史记录的筛选
+
+**Q: 如何屏蔽所有广告域名？**  
+A: 使用负向筛选和通配符：`-domain:ads.* -domain:*.ads.* -domain:tracker.*`
