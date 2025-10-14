@@ -1,3 +1,4 @@
+const startTime = new Date().getTime();
 console.log("zipToExt.js: Start");
 
 console.log("1. Copy manifest.json to dist folder...");
@@ -26,5 +27,5 @@ archive.on("error", function (err) {
 archive.pipe(output);
 archive.directory("dist/", false);
 archive.finalize();
-
-console.log("zipToExt.js: End");
+const endTime = new Date().getTime();
+console.log(`zipToExt.js: End (${endTime - startTime}ms)`);
