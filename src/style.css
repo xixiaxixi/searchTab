@@ -128,10 +128,6 @@ body {
     gap: 8px;
 }
 
-.locale-container {
-    margin-left: auto;
-}
-
 .search-config-item {
     height: 32px;
     display: flex;
