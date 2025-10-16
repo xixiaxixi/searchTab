@@ -137,6 +137,16 @@ function createCardElement(cardConfig) {
     const card = document.createElement('div');
     card.className = 'content-card';
     card.style.height = `${layoutConfig.cardHeight}px`;
+    card.setAttribute('data-card-id', cardConfig.id);
+    card.setAttribute('draggable', 'true');
+    
+    // 添加拖拽事件监听器
+    card.addEventListener('dragstart', handleDragStart);
+    card.addEventListener('dragend', handleDragEnd);
+    card.addEventListener('dragover', handleDragOver);
+    card.addEventListener('drop', handleDrop);
+    card.addEventListener('dragenter', handleDragEnter);
+    card.addEventListener('dragleave', handleDragLeave);
     
     // 卡片头部
     const cardHeader = document.createElement('div');
@@ -144,6 +154,13 @@ function createCardElement(cardConfig) {
     
     const cardHeaderLeft = document.createElement('div');
     cardHeaderLeft.className = 'card-header-left';
+    
+    // 添加拖拽手柄
+    const dragHandle = document.createElement('div');
+    dragHandle.className = 'card-drag-handle';
+    dragHandle.innerHTML = '⋮⋮';
+    dragHandle.title = '拖动以调整顺序';
+    cardHeaderLeft.appendChild(dragHandle);
     
     // 创建可编辑的标题
     const titleContainer = document.createElement('div');
@@ -751,4 +768,76 @@ export function initCardManager() {
             }
         }
     });
+}
+
+// ====== 拖拽排序功能 ======
+let draggedCard = null;
+let draggedCardId = null;
+
+function handleDragStart(e) {
+    draggedCard = e.currentTarget;
+    draggedCardId = draggedCard.getAttribute('data-card-id');
+    draggedCard.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', draggedCard.innerHTML);
+}
+
+function handleDragEnd(e) {
+    e.currentTarget.classList.remove('dragging');
+    
+    // 清除所有的 drag-over 样式
+    document.querySelectorAll('.content-card').forEach(card => {
+        card.classList.remove('drag-over');
+    });
+    
+    draggedCard = null;
+    draggedCardId = null;
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDragEnter(e) {
+    const targetCard = e.currentTarget;
+    if (targetCard !== draggedCard) {
+        targetCard.classList.add('drag-over');
+    }
+}
+
+function handleDragLeave(e) {
+    e.currentTarget.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+    
+    const targetCard = e.currentTarget;
+    const targetCardId = targetCard.getAttribute('data-card-id');
+    
+    if (draggedCard !== targetCard) {
+        // 找到拖拽卡片和目标卡片在配置数组中的索引
+        const draggedIndex = cardsConfig.findIndex(c => c.id === draggedCardId);
+        const targetIndex = cardsConfig.findIndex(c => c.id === targetCardId);
+        
+        if (draggedIndex !== -1 && targetIndex !== -1) {
+            // 从原位置移除
+            const [draggedConfig] = cardsConfig.splice(draggedIndex, 1);
+            
+            // 插入到新位置
+            cardsConfig.splice(targetIndex, 0, draggedConfig);
+            
+            // 保存配置并重新渲染
+            saveCardsConfig(cardsConfig);
+            renderAllCards();
+        }
+    }
+    
+    return false;
 }
