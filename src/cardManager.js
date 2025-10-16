@@ -142,9 +142,176 @@ function createCardElement(cardConfig) {
     const cardHeader = document.createElement('div');
     cardHeader.className = 'card-header';
     
-    const cardTitle = document.createElement('h4');
-    cardTitle.className = 'card-title';
-    cardTitle.textContent = cardConfig.title;
+    const cardHeaderLeft = document.createElement('div');
+    cardHeaderLeft.className = 'card-header-left';
+    
+    // 创建可编辑的标题
+    const titleContainer = document.createElement('div');
+    titleContainer.className = 'card-title-container';
+    
+    const titleDisplay = document.createElement('h4');
+    titleDisplay.className = 'card-title';
+    titleDisplay.textContent = cardConfig.title;
+    
+    const titleInput = document.createElement('input');
+    titleInput.type = 'text';
+    titleInput.className = 'card-title-input';
+    titleInput.value = cardConfig.title || '';
+    titleInput.style.display = 'none';
+    
+    // 标题点击进入编辑模式
+    titleDisplay.addEventListener('click', (e) => {
+        e.stopPropagation();
+        titleDisplay.style.display = 'none';
+        titleInput.style.display = 'block';
+        titleInput.focus();
+        titleInput.select();
+    });
+    
+    // 标题保存
+    const saveTitle = () => {
+        const newTitle = titleInput.value.trim();
+        if (!newTitle) {
+            alert('标题不能为空');
+            titleInput.focus();
+            return;
+        }
+        
+        const cardIndex = cardsConfig.findIndex(c => c.id === cardConfig.id);
+        if (cardIndex !== -1) {
+            cardsConfig[cardIndex].title = newTitle;
+            saveCardsConfig(cardsConfig);
+            renderAllCards();
+        }
+    };
+    
+    titleInput.addEventListener('blur', saveTitle);
+    titleInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            titleInput.blur();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            titleInput.value = cardConfig.title || '';
+            titleDisplay.style.display = 'block';
+            titleInput.style.display = 'none';
+        }
+    });
+    
+    titleContainer.appendChild(titleDisplay);
+    titleContainer.appendChild(titleInput);
+    cardHeaderLeft.appendChild(titleContainer);
+    
+    // 创建内联可编辑的过滤器
+    const filterContainer = document.createElement('div');
+    filterContainer.className = 'card-filter-container';
+    
+    const filterDisplay = document.createElement('span');
+    filterDisplay.className = 'card-filter-display';
+    filterDisplay.textContent = cardConfig.filter || '展示全部';
+    
+    const filterInput = document.createElement('input');
+    filterInput.type = 'text';
+    filterInput.className = 'card-filter-input';
+    filterInput.value = cardConfig.filter || '';
+    filterInput.style.display = 'none';
+    
+    let updateTimeout = null;
+    
+    // 点击容器进入编辑模式
+    filterContainer.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (filterInput.style.display === 'none') {
+            filterDisplay.style.display = 'none';
+            filterInput.style.display = 'block';
+            filterInput.focus();
+            filterInput.select();
+        }
+    });
+    
+    // 实时更新搜索结果（带延迟）
+    const updateResults = () => {
+        const newFilter = filterInput.value.trim();
+        
+        // 验证筛选器语法
+        if (newFilter) {
+            const validation = FilterParser.validate(newFilter);
+            if (!validation.valid) {
+                // 语法错误时不更新
+                return;
+            }
+        }
+        
+        // 临时更新配置以刷新显示
+        const cardIndex = cardsConfig.findIndex(c => c.id === cardConfig.id);
+        if (cardIndex !== -1) {
+            const tempConfig = { ...cardsConfig[cardIndex], filter: newFilter };
+            const cardContent = card.querySelector('.card-content');
+            if (cardContent) {
+                renderCardContent(cardContent, tempConfig);
+            }
+        }
+    };
+    
+    // 输入时实时更新（带防抖）
+    filterInput.addEventListener('input', () => {
+        if (updateTimeout) {
+            clearTimeout(updateTimeout);
+        }
+        updateTimeout = setTimeout(updateResults, 100);
+    });
+    
+    // 失去焦点或按回车保存
+    const saveFilter = () => {
+        if (updateTimeout) {
+            clearTimeout(updateTimeout);
+        }
+        
+        const newFilter = filterInput.value.trim();
+        
+        // 验证筛选器语法
+        if (newFilter) {
+            const validation = FilterParser.validate(newFilter);
+            if (!validation.valid) {
+                alert(`筛选语法错误: ${validation.error}`);
+                filterInput.focus();
+                return;
+            }
+        }
+        
+        // 更新配置
+        const cardIndex = cardsConfig.findIndex(c => c.id === cardConfig.id);
+        if (cardIndex !== -1) {
+            cardsConfig[cardIndex].filter = newFilter;
+            saveCardsConfig(cardsConfig);
+            renderAllCards();
+        }
+    };
+    
+    filterInput.addEventListener('blur', saveFilter);
+    filterInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            filterInput.blur();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            if (updateTimeout) {
+                clearTimeout(updateTimeout);
+            }
+            filterInput.value = cardConfig.filter || '';
+            filterDisplay.style.display = 'inline-block';
+            filterInput.style.display = 'none';
+            // 恢复原始内容
+            const cardContent = card.querySelector('.card-content');
+            if (cardContent) {
+                renderCardContent(cardContent, cardConfig);
+            }
+        }
+    });
+    
+    filterContainer.appendChild(filterDisplay);
+    filterContainer.appendChild(filterInput);
+    cardHeaderLeft.appendChild(filterContainer);
     
     const cardActions = document.createElement('div');
     cardActions.className = 'card-actions';
@@ -171,7 +338,7 @@ function createCardElement(cardConfig) {
     cardActions.appendChild(editButton);
     cardActions.appendChild(deleteButton);
     
-    cardHeader.appendChild(cardTitle);
+    cardHeader.appendChild(cardHeaderLeft);
     cardHeader.appendChild(cardActions);
     
     // 卡片内容
@@ -214,8 +381,11 @@ function createItemElement(item) {
     favicon.className = 'card-item-favicon';
     
     try {
-        const hostname = new URL(item.url).hostname;
-        favicon.src = `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
+        // 使用 Chrome Favicon API
+        const faviconUrl = new URL(chrome.runtime.getURL("/_favicon/"));
+        faviconUrl.searchParams.set("pageUrl", item.url);
+        faviconUrl.searchParams.set("size", "32");
+        favicon.src = faviconUrl.toString();
     } catch (e) {
         favicon.style.display = 'none';
     }

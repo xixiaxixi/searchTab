@@ -240,6 +240,19 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 8px;
+}
+
+.card-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.card-title-container {
+    flex-shrink: 0;
 }
 
 .card-title {
@@ -247,11 +260,77 @@ body {
     color: #333;
     font-size: 14px;
     font-weight: 600;
+    cursor: pointer;
+    padding: 3px 6px;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+}
+
+.card-title:hover {
+    background-color: #e9ecef;
+}
+
+.card-title-input {
+    font-size: 14px;
+    color: #333;
+    font-weight: 600;
+    background: white;
+    padding: 3px 6px;
+    border-radius: 3px;
+    border: 1px solid #4285F4;
+    outline: none;
+    min-width: 100px;
+}
+
+.card-title-input:focus {
+    box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+}
+
+.card-filter-container {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+    cursor: pointer;
+    padding: 3px 8px;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+}
+
+.card-filter-container:hover {
+    background-color: #f0f0f0;
+}
+
+.card-filter-display {
+    font-size: 14px;
+    color: #999;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
+.card-filter-input {
+    font-size: 14px;
+    color: #333;
+    background: white;
+    padding: 3px 8px;
+    border-radius: 3px;
+    border: 1px solid #4285F4;
+    outline: none;
+    flex: 1;
+    min-width: 100px;
+    font-family: 'Courier New', monospace;
+}
+
+.card-filter-input:focus {
+    box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
 }
 
 .card-actions {
     display: flex;
     gap: 6px;
+    flex-shrink: 0;
 }
 
 .card-action-button {
