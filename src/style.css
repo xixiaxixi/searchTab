@@ -193,8 +193,8 @@ body {
 
 /* ====== 卡片式内容区域样式 ====== */
 #cards-section {
-    width: 85%;
-    max-width: 1200px;
+    width: max(calc(100% - 400px), 85%, 1200px); /* 左右各留 200px，但不会小于容器宽度 */
+    max-width: 100%; /* 确保不会超出 */
     margin: 27px auto 20px;
     padding-bottom: 60px; /* 为底部工具栏留出空间 */
 }
@@ -622,10 +622,6 @@ input.filter-invalid {
 @media (max-width: 768px) {
     .cards-grid {
         grid-template-columns: 1fr;
-    }
-    
-    #cards-section {
-        width: 95%;
     }
     
     .cards-header {
