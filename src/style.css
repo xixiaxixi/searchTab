@@ -33,6 +33,7 @@ body {
     text-align: center;
     margin: 12px;
     display: flex;
+    position: relative;
 }
 
 .search-input {
@@ -50,6 +51,125 @@ body {
     font-size: 18px;
     border: none;
     cursor: pointer;
+}
+
+.search-button-disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* 历史记录搜索结果容器 */
+#history-results-container {
+    width: 80%;
+    max-width: 1000px;
+    margin: 20px auto;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.history-results-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.history-result-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 14px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.history-result-item:last-child {
+    border-bottom: none;
+}
+
+.history-result-item:hover {
+    background-color: #f5f7fa;
+}
+
+.history-result-favicon {
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.history-result-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.history-result-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.history-result-title {
+    font-size: 15px;
+    color: #333;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.history-result-meta-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    font-size: 12px;
+    color: #666;
+}
+
+.history-result-source-icon {
+    font-size: 14px;
+}
+
+.history-result-visits {
+    color: #5f6368;
+}
+
+.history-result-time {
+    color: #5f6368;
+}
+
+.history-result-time::before {
+    content: "·";
+    margin-right: 8px;
+    color: #ccc;
+}
+
+.history-result-url {
+    font-size: 13px;
+    color: #5f6368;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.history-result-folder {
+    color: #1a73e8;
+    font-weight: 500;
+}
+
+.history-results-empty {
+    padding: 60px 20px;
+    text-align: center;
+    color: #999;
+    font-size: 16px;
 }
 
 #split-line {
