@@ -391,8 +391,15 @@ function renderCardContent(container, cardConfig) {
 }
 
 function createItemElement(item) {
-    const itemDiv = document.createElement('div');
-    itemDiv.className = 'card-item';
+    // 使用 <a> 标签代替 <div>，支持浏览器原生交互
+    const itemLink = document.createElement('a');
+    itemLink.className = 'card-item';
+    itemLink.href = item.url;
+    // 根据设置决定是否在新标签页打开
+    if (openInNewTab) {
+        itemLink.target = '_blank';
+        itemLink.rel = 'noopener noreferrer'; // 安全性最佳实践
+    }
     
     const favicon = document.createElement('img');
     favicon.className = 'card-item-favicon';
@@ -436,19 +443,10 @@ function createItemElement(item) {
     itemInfo.appendChild(title);
     itemInfo.appendChild(meta);
     
-    itemDiv.appendChild(favicon);
-    itemDiv.appendChild(itemInfo);
+    itemLink.appendChild(favicon);
+    itemLink.appendChild(itemInfo);
     
-    // 点击事件
-    itemDiv.addEventListener('click', () => {
-        if (openInNewTab) {
-            window.open(item.url, '_blank');
-        } else {
-            window.open(item.url, '_self');
-        }
-    });
-    
-    return itemDiv;
+    return itemLink;
 }
 
 function getFilteredItems(cardConfig) {

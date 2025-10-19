@@ -82,6 +82,9 @@ body {
     border-bottom: 1px solid #f0f0f0;
     cursor: pointer;
     transition: background-color 0.2s ease;
+    /* 重置 <a> 标签的默认样式 */
+    text-decoration: none;
+    color: inherit;
 }
 
 .history-result-item:last-child {
@@ -520,6 +523,9 @@ body {
     border-radius: 3px;
     cursor: pointer;
     transition: background-color 0.15s ease;
+    /* 重置 <a> 标签的默认样式 */
+    text-decoration: none;
+    color: inherit;
 }
 
 .card-item:hover {

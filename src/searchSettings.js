@@ -435,8 +435,15 @@ function renderHistoryResults(results) {
     listDiv.className = 'history-results-list';
 
     results.forEach(item => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'history-result-item';
+        // 使用 <a> 标签代替 <div>，支持浏览器原生交互
+        const itemLink = document.createElement('a');
+        itemLink.className = 'history-result-item';
+        itemLink.href = item.url;
+        // 根据设置决定是否在新标签页打开
+        if (openInNewTab) {
+            itemLink.target = '_blank';
+            itemLink.rel = 'noopener noreferrer'; // 安全性最佳实践
+        }
         
         // 图标
         const favicon = document.createElement('img');
@@ -511,19 +518,10 @@ function renderHistoryResults(results) {
         contentDiv.appendChild(titleRowDiv);
         contentDiv.appendChild(urlDiv);
         
-        itemDiv.appendChild(favicon);
-        itemDiv.appendChild(contentDiv);
+        itemLink.appendChild(favicon);
+        itemLink.appendChild(contentDiv);
         
-        // 点击事件
-        itemDiv.addEventListener('click', () => {
-            if (openInNewTab) {
-                window.open(item.url, '_blank');
-            } else {
-                window.open(item.url, '_self');
-            }
-        });
-        
-        listDiv.appendChild(itemDiv);
+        listDiv.appendChild(itemLink);
     });
 
     container.appendChild(listDiv);
