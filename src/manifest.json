@@ -16,17 +16,7 @@
     "128": "favicon.ico"
   },
   "chrome_url_overrides": {
-    "newtab": "index.html"
+    "newtab": "src/index.html"
   },
-  "i18n": {
-    "default_locale": "zh_CN",
-    "locales": {
-      "en": {
-        "description": "Replaces the default new tab page with a custom one"
-      },
-      "zh_CN": {
-        "description": "替换默认的新标签页为自定义页面"
-      }
-    }
-  }
+  "default_locale": "zh_CN"
 }

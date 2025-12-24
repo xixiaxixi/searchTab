@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "Search New Tab",
+    "description": "The name of the extension"
+  },
+  "appDescription": {
+    "message": "替换默认的新标签页为自定义页面",
+    "description": "The description of the extension"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "Search New Tab",
+    "description": "The name of the extension"
+  },
+  "appDescription": {
+    "message": "Replaces the default new tab page with a custom one",
+    "description": "The description of the extension"
+  }
+}
