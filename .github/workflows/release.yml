@@ -32,11 +32,22 @@ jobs:
       - name: Build extension
         run: npm run build
       
-      # 5. 打包 dist 目录
-      - name: Package extension
-        run: cd dist && zip -r ../search_new_tab.zip .
+      # 5. 验证构建产物
+      - name: Verify build output
+        run: |
+          echo "Checking dist directory..."
+          ls -la dist/
+          echo "Building zip package..."
       
-      # 6. 创建 GitHub Release 并上传构建产物
+      # 6. 打包 dist 目录
+      - name: Package extension
+        run: |
+          cd dist
+          zip -r ../search_new_tab.zip ./*
+          cd ..
+          ls -lh search_new_tab.zip
+      
+      # 7. 创建 GitHub Release 并上传构建产物
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
