@@ -331,6 +331,15 @@ function attachSearchBarEvents() {
 }
 
 // 历史记录搜索事件
+// 性能配置
+const DEBOUNCE_DELAY = 300; // 防抖延迟（毫秒）
+const INITIAL_RENDER_COUNT = 20; // 首次渲染数量
+const BATCH_SIZE = 30; // 每批渲染数量
+const ENABLE_PERF_LOG = true; // 启用性能日志
+
+let searchDebounceTimer = null;
+let pendingRenderTask = null;
+
 function attachHistorySearchEvents() {
     const historyInput = document.getElementById('history-search-input');
     const historyResultsContainer = createHistoryResultsContainer();
@@ -342,20 +351,41 @@ function attachHistorySearchEvents() {
     const updateResults = () => {
         const query = historyInput.value.trim();
         
+        // 取消之前的渲染任务
+        if (pendingRenderTask) {
+            cancelIdleCallback ? cancelIdleCallback(pendingRenderTask) : clearTimeout(pendingRenderTask);
+            pendingRenderTask = null;
+        }
+        
         if (query === '') {
             hideHistoryResults();
             showCardsSection();
         } else {
+            const perfStart = ENABLE_PERF_LOG ? performance.now() : 0;
+            
             // 合并所有数据源
             const allItems = [...browserHistory, ...browserBookmarks];
             
             // 直接使用 filterItems 筛选
             const results = filterItems(query, allItems);
             
+            if (ENABLE_PERF_LOG) {
+                const perfEnd = performance.now();
+                console.log(`[Perf] 历史搜索筛选耗时: ${(perfEnd - perfStart).toFixed(2)}ms, 结果数: ${results.length}`);
+            }
+            
             renderHistoryResults(results);
             showHistoryResults();
             hideCardsSection();
         }
+    };
+    
+    // 带防抖的更新函数
+    const debouncedUpdateResults = () => {
+        if (searchDebounceTimer) {
+            clearTimeout(searchDebounceTimer);
+        }
+        searchDebounceTimer = setTimeout(updateResults, DEBOUNCE_DELAY);
     };
 
     // 输入同步 - 同步到所有输入框
@@ -367,10 +397,10 @@ function attachHistorySearchEvents() {
                     otherInput.value = value;
                 }
             });
-            updateResults();
+            debouncedUpdateResults();
         });
     } else {
-        historyInput.addEventListener('input', updateResults);
+        historyInput.addEventListener('input', debouncedUpdateResults);
     }
 
     // Tab键切换到下一个输入框
@@ -416,10 +446,20 @@ function createHistoryResultsContainer() {
     return container;
 }
 
-// 渲染历史记录结果
+// 渲染历史记录结果（分批渲染优化）
 function renderHistoryResults(results) {
     const container = document.getElementById('history-results-container');
     if (!container) return;
+    
+    // 取消之前的渲染任务
+    if (pendingRenderTask) {
+        if (typeof cancelIdleCallback !== 'undefined') {
+            cancelIdleCallback(pendingRenderTask);
+        } else {
+            clearTimeout(pendingRenderTask);
+        }
+        pendingRenderTask = null;
+    }
     
     container.innerHTML = '';
     
@@ -433,98 +473,158 @@ function renderHistoryResults(results) {
 
     const listDiv = document.createElement('div');
     listDiv.className = 'history-results-list';
-
-    results.forEach(item => {
-        // 使用 <a> 标签代替 <div>，支持浏览器原生交互
-        const itemLink = document.createElement('a');
-        itemLink.className = 'history-result-item';
-        itemLink.href = item.url;
-        // 根据设置决定是否在新标签页打开
-        if (openInNewTab) {
-            itemLink.target = '_blank';
-            itemLink.rel = 'noopener noreferrer'; // 安全性最佳实践
-        }
+    container.appendChild(listDiv);
+    
+    const perfDomStart = ENABLE_PERF_LOG ? performance.now() : 0;
+    
+    // 首次渲染：只渲染前 INITIAL_RENDER_COUNT 个项目
+    const initialCount = Math.min(INITIAL_RENDER_COUNT, results.length);
+    const fragment = document.createDocumentFragment();
+    
+    for (let i = 0; i < initialCount; i++) {
+        const itemElement = createHistoryResultItem(results[i]);
+        fragment.appendChild(itemElement);
+    }
+    listDiv.appendChild(fragment);
+    
+    if (ENABLE_PERF_LOG) {
+        const perfDomEnd = performance.now();
+        console.log(`[Perf] 首批DOM渲染耗时: ${(perfDomEnd - perfDomStart).toFixed(2)}ms, 项数: ${initialCount}`);
+    }
+    
+    // 如果还有更多项目，分批渲染
+    if (results.length > INITIAL_RENDER_COUNT) {
+        let currentIndex = INITIAL_RENDER_COUNT;
+        let batchCount = 0;
         
-        // 图标
-        const favicon = document.createElement('img');
-        favicon.className = 'history-result-favicon';
-        
-        try {
-            const faviconUrl = new URL(chrome.runtime.getURL("/_favicon/"));
-            faviconUrl.searchParams.set("pageUrl", item.url);
-            faviconUrl.searchParams.set("size", "32");
-            favicon.src = faviconUrl.toString();
-        } catch (e) {
-            favicon.src = `chrome://favicon/${item.url}`;
-        }
-        
-        favicon.onerror = function() {
-            this.style.display = 'none';
-        };
-        
-        // 内容区域
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'history-result-content';
-        
-        // 标题行（包含标题和元信息）
-        const titleRowDiv = document.createElement('div');
-        titleRowDiv.className = 'history-result-title-row';
-        
-        const titleDiv = document.createElement('div');
-        titleDiv.className = 'history-result-title';
-        titleDiv.textContent = item.title;
-        
-        const metaRightDiv = document.createElement('div');
-        metaRightDiv.className = 'history-result-meta-right';
-        
-        // 根据来源显示不同的信息
-        if (item.source === 'bookmark') {
-            // 收藏夹项
-            const sourceIcon = document.createElement('span');
-            sourceIcon.className = 'history-result-source-icon';
-            sourceIcon.textContent = '📑';
-            sourceIcon.title = '收藏夹';
-            metaRightDiv.appendChild(sourceIcon);
-        } else if (item.source === 'history') {
-            // 历史记录项 - 显示访问次数和时间
-            if (item.visitCount > 0) {
-                const visitSpan = document.createElement('span');
-                visitSpan.className = 'history-result-visits';
-                visitSpan.textContent = `访问${item.visitCount}次`;
-                metaRightDiv.appendChild(visitSpan);
+        const renderNextBatch = () => {
+            // 检查容器是否还存在
+            if (!listDiv.isConnected) {
+                if (ENABLE_PERF_LOG) console.log('[Perf] 渲染已取消（容器已断开）');
+                return;
             }
             
-            if (item.lastVisitTime) {
-                const timeSpan = document.createElement('span');
-                timeSpan.className = 'history-result-time';
-                timeSpan.textContent = formatTimeAgo(item.lastVisitTime);
-                metaRightDiv.appendChild(timeSpan);
+            const batchStart = ENABLE_PERF_LOG ? performance.now() : 0;
+            const batchEnd = Math.min(currentIndex + BATCH_SIZE, results.length);
+            
+            const batchFragment = document.createDocumentFragment();
+            for (let i = currentIndex; i < batchEnd; i++) {
+                const itemElement = createHistoryResultItem(results[i]);
+                batchFragment.appendChild(itemElement);
             }
-        }
+            listDiv.appendChild(batchFragment);
+            
+            batchCount++;
+            if (ENABLE_PERF_LOG) {
+                const batchEndTime = performance.now();
+                console.log(`[Perf] 批次${batchCount} DOM渲染耗时: ${(batchEndTime - batchStart).toFixed(2)}ms, 项数: ${batchEnd - currentIndex}`);
+            }
+            
+            currentIndex = batchEnd;
+            
+            // 继续渲染剩余项目
+            if (currentIndex < results.length) {
+                pendingRenderTask = setTimeout(renderNextBatch, 0);
+            } else {
+                pendingRenderTask = null;
+                if (ENABLE_PERF_LOG) console.log(`[Perf] 全部渲染完成，总项数: ${results.length}`);
+            }
+        };
         
-        titleRowDiv.appendChild(titleDiv);
-        titleRowDiv.appendChild(metaRightDiv);
-        
-        // URL和文件夹信息行
-        const urlDiv = document.createElement('div');
-        urlDiv.className = 'history-result-url';
-        
-        if (item.source === 'bookmark' && item.folder) {
-            urlDiv.innerHTML = `<span class="history-result-folder">📁 ${item.folder}</span> · ${item.url}`;
-        } else {
-            urlDiv.textContent = item.url;
-        }
-        
-        contentDiv.appendChild(titleRowDiv);
-        contentDiv.appendChild(urlDiv);
-        
-        itemLink.appendChild(favicon);
-        itemLink.appendChild(contentDiv);
-        
-        listDiv.appendChild(itemLink);
-    });
+        // 延迟开始后续渲染，让首批先显示
+        pendingRenderTask = setTimeout(renderNextBatch, 0);
+    }
+}
 
-    container.appendChild(listDiv);
+// 创建单个历史记录结果项
+function createHistoryResultItem(item) {
+    // 使用 <a> 标签代替 <div>，支持浏览器原生交互
+    const itemLink = document.createElement('a');
+    itemLink.className = 'history-result-item';
+    itemLink.href = item.url;
+    // 根据设置决定是否在新标签页打开
+    if (openInNewTab) {
+        itemLink.target = '_blank';
+        itemLink.rel = 'noopener noreferrer'; // 安全性最佳实践
+    }
+    
+    // 图标
+    const favicon = document.createElement('img');
+    favicon.className = 'history-result-favicon';
+    
+    try {
+        const faviconUrl = new URL(chrome.runtime.getURL("/_favicon/"));
+        faviconUrl.searchParams.set("pageUrl", item.url);
+        faviconUrl.searchParams.set("size", "32");
+        favicon.src = faviconUrl.toString();
+    } catch (e) {
+        favicon.src = `chrome://favicon/${item.url}`;
+    }
+    
+    favicon.onerror = function() {
+        this.style.display = 'none';
+    };
+    
+    // 内容区域
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'history-result-content';
+    
+    // 标题行（包含标题和元信息）
+    const titleRowDiv = document.createElement('div');
+    titleRowDiv.className = 'history-result-title-row';
+    
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'history-result-title';
+    titleDiv.textContent = item.title;
+    
+    const metaRightDiv = document.createElement('div');
+    metaRightDiv.className = 'history-result-meta-right';
+    
+    // 根据来源显示不同的信息
+    if (item.source === 'bookmark') {
+        // 收藏夹项
+        const sourceIcon = document.createElement('span');
+        sourceIcon.className = 'history-result-source-icon';
+        sourceIcon.textContent = '📑';
+        sourceIcon.title = '收藏夹';
+        metaRightDiv.appendChild(sourceIcon);
+    } else if (item.source === 'history') {
+        // 历史记录项 - 显示访问次数和时间
+        if (item.visitCount > 0) {
+            const visitSpan = document.createElement('span');
+            visitSpan.className = 'history-result-visits';
+            visitSpan.textContent = `访问${item.visitCount}次`;
+            metaRightDiv.appendChild(visitSpan);
+        }
+        
+        if (item.lastVisitTime) {
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'history-result-time';
+            timeSpan.textContent = formatTimeAgo(item.lastVisitTime);
+            metaRightDiv.appendChild(timeSpan);
+        }
+    }
+    
+    titleRowDiv.appendChild(titleDiv);
+    titleRowDiv.appendChild(metaRightDiv);
+    
+    // URL和文件夹信息行
+    const urlDiv = document.createElement('div');
+    urlDiv.className = 'history-result-url';
+    
+    if (item.source === 'bookmark' && item.folder) {
+        urlDiv.innerHTML = `<span class="history-result-folder">📁 ${item.folder}</span> · ${item.url}`;
+    } else {
+        urlDiv.textContent = item.url;
+    }
+    
+    contentDiv.appendChild(titleRowDiv);
+    contentDiv.appendChild(urlDiv);
+    
+    itemLink.appendChild(favicon);
+    itemLink.appendChild(contentDiv);
+    
+    return itemLink;
 }
 
 // 显示/隐藏历史记录结果

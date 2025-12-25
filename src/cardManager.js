@@ -270,12 +270,12 @@ function createCardElement(cardConfig) {
         }
     };
     
-    // 输入时实时更新（带防抖）
+    // 输入时实时更新（带防抖，300ms 等待）
     filterInput.addEventListener('input', () => {
         if (updateTimeout) {
             clearTimeout(updateTimeout);
         }
-        updateTimeout = setTimeout(updateResults, 100);
+        updateTimeout = setTimeout(updateResults, 300);
     });
     
     // 失去焦点或按回车保存
@@ -370,8 +370,20 @@ function createCardElement(cardConfig) {
     return card;
 }
 
+// 分批渲染配置
+const INITIAL_RENDER_COUNT = 15; // 首次快速渲染的项目数
+const BATCH_SIZE = 30; // 每批渲染的项目数
+const ENABLE_PERF_LOGGING = true; // 是否启用性能日志
+
 function renderCardContent(container, cardConfig) {
+    const perfStart = ENABLE_PERF_LOGGING ? performance.now() : 0;
+    
     const items = getFilteredItems(cardConfig);
+    
+    const perfFilterEnd = ENABLE_PERF_LOGGING ? performance.now() : 0;
+    if (ENABLE_PERF_LOGGING) {
+        console.log(`[Perf] 筛选耗时: ${(perfFilterEnd - perfStart).toFixed(2)}ms, 结果数: ${items.length}`);
+    }
     
     if (items.length === 0) {
         container.innerHTML = `<div class="card-empty">暂无内容</div>`;
@@ -381,13 +393,77 @@ function renderCardContent(container, cardConfig) {
     const itemsList = document.createElement('div');
     itemsList.className = 'card-items-list';
     
-    items.slice(0, cardConfig.maxItems).forEach(item => {
-        const itemElement = createItemElement(item);
-        itemsList.appendChild(itemElement);
-    });
+    const maxItems = cardConfig.maxItems || items.length;
+    const displayItems = items.slice(0, maxItems);
     
+    // 先清空容器并添加列表
     container.innerHTML = '';
     container.appendChild(itemsList);
+    
+    const perfDomStart = ENABLE_PERF_LOGGING ? performance.now() : 0;
+    
+    // 使用 DocumentFragment 进行首次渲染
+    const initialCount = Math.min(INITIAL_RENDER_COUNT, displayItems.length);
+    const fragment = document.createDocumentFragment();
+    
+    for (let i = 0; i < initialCount; i++) {
+        const itemElement = createItemElement(displayItems[i]);
+        fragment.appendChild(itemElement);
+    }
+    itemsList.appendChild(fragment);
+    
+    const perfDomEnd = ENABLE_PERF_LOGGING ? performance.now() : 0;
+    if (ENABLE_PERF_LOGGING) {
+        console.log(`[Perf] 首批DOM渲染耗时: ${(perfDomEnd - perfDomStart).toFixed(2)}ms, 项数: ${initialCount}`);
+    }
+    
+    // 如果项目数量较少，直接完成
+    if (displayItems.length <= INITIAL_RENDER_COUNT) {
+        return;
+    }
+    
+    // 使用 setTimeout 分批渲染剩余项目（避免阻塞主线程）
+    let currentIndex = INITIAL_RENDER_COUNT;
+    let batchCount = 0;
+    
+    const renderNextBatch = () => {
+        // 检查容器是否还在 DOM 中（可能已被新的搜索替换）
+        if (!container.isConnected || !itemsList.isConnected) {
+            if (ENABLE_PERF_LOGGING) {
+                console.log(`[Perf] 渲染已取消（容器已断开）`);
+            }
+            return;
+        }
+        
+        const batchStart = ENABLE_PERF_LOGGING ? performance.now() : 0;
+        const batchEnd = Math.min(currentIndex + BATCH_SIZE, displayItems.length);
+        
+        // 使用 DocumentFragment 批量添加 DOM 节点
+        const batchFragment = document.createDocumentFragment();
+        for (let i = currentIndex; i < batchEnd; i++) {
+            const itemElement = createItemElement(displayItems[i]);
+            batchFragment.appendChild(itemElement);
+        }
+        itemsList.appendChild(batchFragment);
+        
+        batchCount++;
+        const batchEndTime = ENABLE_PERF_LOGGING ? performance.now() : 0;
+        if (ENABLE_PERF_LOGGING) {
+            console.log(`[Perf] 批次${batchCount} DOM渲染耗时: ${(batchEndTime - batchStart).toFixed(2)}ms, 项数: ${batchEnd - currentIndex}`);
+        }
+        
+        currentIndex = batchEnd;
+        
+        // 如果还有更多项目，继续渲染（使用 setTimeout 让出主线程）
+        if (currentIndex < displayItems.length) {
+            setTimeout(renderNextBatch, 0);
+        } else if (ENABLE_PERF_LOGGING) {
+            console.log(`[Perf] 全部渲染完成，总项数: ${displayItems.length}`);
+        }
+    };
+    
+    // 使用 setTimeout 开始渲染剩余项目（让首批先显示）
+    setTimeout(renderNextBatch, 0);
 }
 
 function createItemElement(item) {

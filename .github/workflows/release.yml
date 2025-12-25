@@ -32,11 +32,15 @@ jobs:
       - name: Build extension
         run: npm run build
       
-      # 5. 创建 GitHub Release 并上传构建产物
+      # 5. 打包 dist 目录
+      - name: Package extension
+        run: cd dist && zip -r ../search_new_tab.zip .
+      
+      # 6. 创建 GitHub Release 并上传构建产物
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: output/search_new_tab.zip
+          files: search_new_tab.zip
           draft: false
           prerelease: false
           generate_release_notes: true
